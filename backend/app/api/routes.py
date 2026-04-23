@@ -11,6 +11,7 @@ import logging
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
+from app.core.settings import settings
 from app.services.cad_parser import parse_stl
 from app.services.validation_engine import validate_geometry
 from app.models.schemas import AnalyzeResponse, CADResponse, ValidationResponse
@@ -18,6 +19,8 @@ from app.models.schemas import AnalyzeResponse, CADResponse, ValidationResponse
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+MAX_UPLOAD_BYTES = settings.max_upload_bytes
+UPLOAD_CHUNK_SIZE = settings.upload_chunk_size
 
 
 @router.post(
@@ -46,7 +49,7 @@ async def analyze_stl(file: UploadFile = File(..., description="STL file to anal
     """
     _validate_upload(file)
 
-    tmp_path = _save_temp_file(file)
+    tmp_path = await _save_temp_file(file)
     try:
         parsed = _run_parse(tmp_path)
         validation = _run_validation(parsed)
@@ -73,7 +76,7 @@ def _validate_upload(file: UploadFile) -> None:
         )
 
 
-def _save_temp_file(file: UploadFile) -> str:
+async def _save_temp_file(file: UploadFile) -> str:
     """
     Write the uploaded file to a named temp file and return its path.
 
@@ -81,9 +84,25 @@ def _save_temp_file(file: UploadFile) -> str:
     """
     suffix = f"_{uuid.uuid4().hex}.stl"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    total_bytes = 0
     try:
-        contents = file.file.read()
-        tmp.write(contents)
+        while True:
+            chunk = await file.read(UPLOAD_CHUNK_SIZE)
+            if not chunk:
+                break
+
+            total_bytes += len(chunk)
+            if total_bytes > MAX_UPLOAD_BYTES:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=(
+                        "Uploaded file is too large. "
+                        f"Maximum allowed size is {MAX_UPLOAD_BYTES} bytes."
+                    ),
+                )
+
+            tmp.write(chunk)
+
         tmp.flush()
     finally:
         tmp.close()

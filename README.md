@@ -15,6 +15,20 @@ Backend run
 4. API docs:
 	http://127.0.0.1:8000/docs
 
+Backend environment variables
+- CAD_CORS_ALLOWED_ORIGINS (default: *)
+	- Comma-separated origins. Example:
+		http://127.0.0.1:5173,http://localhost:5173
+- CAD_MAX_UPLOAD_BYTES (default: 26214400)
+	- Maximum accepted upload size in bytes.
+- CAD_UPLOAD_CHUNK_SIZE (default: 1048576)
+	- Streaming read chunk size in bytes.
+
+Backend tests
+1. Open a terminal in backend
+2. Run:
+	pytest -q
+
 Frontend run
 1. Open a terminal in frontend
 2. Install dependencies:

@@ -41,11 +41,19 @@ class ValidationIssue(BaseModel):
     message: str = Field(..., description="Human-readable description of the issue")
 
 
+class ValidationSummary(BaseModel):
+    design_quality: str = Field(..., description="Overall design quality label")
+    risk_level: str = Field(..., description="Estimated risk level")
+    recommendation: str = Field(..., description="Human-readable next-step recommendation")
+
+
 class ValidationResponse(BaseModel):
     issues: list[ValidationIssue] = Field(
         default_factory=list,
         description="List of validation issues found in the mesh",
     )
+    summary: ValidationSummary
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
 
 
 # ---------------------------------------------------------------------------

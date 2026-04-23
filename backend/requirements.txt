@@ -4,3 +4,4 @@ pydantic>=2.7.0
 trimesh>=4.3.0
 numpy>=1.26.0
 python-multipart>=0.0.9   # required by FastAPI for file uploads
+pytest>=8.2.0

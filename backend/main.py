@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
+from app.core.settings import settings
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -39,7 +40,7 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Tighten in production (e.g. your frontend domain)
+    allow_origins=settings.cors_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
