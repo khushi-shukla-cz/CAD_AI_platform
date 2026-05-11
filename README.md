@@ -16,13 +16,21 @@ Backend run
 	http://127.0.0.1:8000/docs
 
 Backend environment variables
-- CAD_CORS_ALLOWED_ORIGINS (default: *)
-	- Comma-separated origins. Example:
-		http://127.0.0.1:5173,http://localhost:5173
+- CAD_CORS_ALLOWED_ORIGINS (default: http://127.0.0.1:5173,http://localhost:5173)
+	- Comma-separated allowed origins. Wildcards are rejected for security.
+	- Example: http://127.0.0.1:5173,https://app.example.com
+- CAD_CORS_ALLOWED_METHODS (default: GET,POST,OPTIONS)
+	- Comma-separated HTTP methods allowed in CORS.
+- CAD_CORS_ALLOWED_HEADERS (default: Accept,Authorization,Content-Type,Origin,X-Requested-With)
+	- Comma-separated headers allowed in CORS requests.
 - CAD_MAX_UPLOAD_BYTES (default: 26214400)
 	- Maximum accepted upload size in bytes.
 - CAD_UPLOAD_CHUNK_SIZE (default: 1048576)
-	- Streaming read chunk size in bytes.
+	- Streaming read chunk size in bytes. Must not exceed CAD_MAX_UPLOAD_BYTES.
+- CAD_RATE_LIMIT_REQUESTS_PER_WINDOW (default: 12)
+	- Maximum requests allowed per rate limit window on POST /api/v1/analyze.
+- CAD_RATE_LIMIT_WINDOW_SECONDS (default: 60)
+	- Duration in seconds of each rate limit window.
 
 Backend tests
 1. Open a terminal in backend
@@ -52,5 +60,7 @@ Environment config (Vite)
 	frontend/.env.production (production build)
 
 Notes
-- CORS is currently open for local development.
+- CORS, settings, and rate limiting are validated at application startup.
+- Wildcard CORS origins are rejected for security; use explicit origin list.
 - Upload field accepts .stl files and sends multipart/form-data with field name file.
+- Request rate limiting is per-IP on the POST /api/v1/analyze endpoint.
